@@ -144,6 +144,7 @@ include_directories(
 # add_executable(${PROJECT_NAME}_node src/my_robot_controller_node.cpp)
 add_executable(waypoint_moving_client src/waypoint_moving_client.cpp)
 add_executable(waypoint_moving_server src/waypoint_moving_server.cpp)
+add_executable(my_moving_server src/my_moving_server.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -167,7 +168,11 @@ target_link_libraries(
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )
-
+target_link_libraries(
+  my_moving_server
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
 #############
 ## Install ##
 #############
