@@ -143,6 +143,7 @@ include_directories(
 ## The recommended prefix ensures that target names across packages don't collide
 # add_executable(${PROJECT_NAME}_node src/my_robot_controller_node.cpp)
 add_executable(waypoint_moving_client src/waypoint_moving_client.cpp)
+add_executable(waypoint_moving_server src/waypoint_moving_server.cpp)
 
 
 ## Rename C++ executable without prefix
@@ -158,6 +159,11 @@ add_executable(waypoint_moving_client src/waypoint_moving_client.cpp)
 ## Specify libraries to link a library or executable target against
 target_link_libraries(
   waypoint_moving_client
+  ${catkin_LIBRARIES}
+  ${Boost_LIBRARIES}
+)
+target_link_libraries(
+  waypoint_moving_server
   ${catkin_LIBRARIES}
   ${Boost_LIBRARIES}
 )
