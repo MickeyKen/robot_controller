@@ -111,41 +111,35 @@ void WaypointMovingActionServer::executeCB(const my_robot_controller::WaypointMo
     base_frame = "/base_footprint";
     child_frame = "/odom";
 
-    if (target_x == target_y) {
-      if (target_x < 0) {
-        command_.linear.x = - (x_speed);
-      } else {
-        command_.linear.x = x_speed;
-      }
-      if (target_y < 0) {
-        command_.linear.y = - (y_speed);
-      } else {
-        command_.linear.y = y_speed;
-      }
-
-      while (current_x < target_x && current_y < target_y && nh_.ok()) {
-        pub_.publish(command_);
-        r.sleep();
-        try {
-          listener.waitForTransform(base_frame, child_frame,
-            ros::Time(0), ros::Duration(1.0));
-          listener.lookupTransform(base_frame, child_frame,
-            ros::Time(0), transform);
-        } catch (tf::TransformException &ex) {
-          ROS_ERROR("%s",ex.what());
-          ros::Duration(1.0).sleep();
-          continue;
-        }
-        current_x += fabs(transform.getOrigin().x());
-        current_y += fabs(transform.getOrigin().y());
-
-      }
-
-    } else if (target_x > target_y) {
-
+    if (target_x < 0) {
+      command_.linear.x = - (x_speed);
     } else {
-
+      command_.linear.x = x_speed;
     }
+    if (target_y < 0) {
+      command_.linear.y = - (y_speed);
+    } else {
+      command_.linear.y = y_speed;
+    }
+
+    while (current_x < target_x && current_y < target_y && nh_.ok()) {
+      pub_.publish(command_);
+      r.sleep();
+      try {
+        listener.waitForTransform(base_frame, child_frame,
+          ros::Time(0), ros::Duration(1.0));
+        listener.lookupTransform(base_frame, child_frame,
+          ros::Time(0), transform);
+      } catch (tf::TransformException &ex) {
+        ROS_ERROR("%s",ex.what());
+        ros::Duration(1.0).sleep();
+        continue;
+      }
+      current_x += fabs(transform.getOrigin().x());
+      current_y += fabs(transform.getOrigin().y());
+    }
+
+
     command_.linear.x = 0;
     command_.linear.y = 0;
     pub_.publish(command_);
