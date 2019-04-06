@@ -14,8 +14,8 @@ class WaypointMovingActionServer
 public:
   WaypointMovingActionServer(std::string name);
   ~WaypointMovingActionServer(void) { };
-  void goalCB();
-  void preemptCB();
+  // void goalCB();
+  // void preemptCB();
   void executeCB(const my_robot_controller::WaypointMovingGoalConstPtr &goal_);
 
 protected:
@@ -46,10 +46,10 @@ WaypointMovingActionServer::WaypointMovingActionServer(std::string name) :
  as_(nh_, name, boost::bind(&WaypointMovingActionServer::executeCB, this, _1), false),
  action_name_(name)
 {
-  as_.registerGoalCallback(boost::bind(
-    &WaypointMovingActionServer::goalCB, this));
-  as_.registerPreemptCallback(boost::bind(
-    &WaypointMovingActionServer::preemptCB, this));
+  // as_.registerGoalCallback(boost::bind(
+  //   &WaypointMovingActionServer::goalCB, this));
+  // as_.registerPreemptCallback(boost::bind(
+  //   &WaypointMovingActionServer::preemptCB, this));
   // as_.registerExecuteCallback(boost::bind(
   //   &WaypointMovingActionServer::executeCB, this));
   pub_ = nh_.advertise<geometry_msgs::Twist>(
@@ -57,25 +57,35 @@ WaypointMovingActionServer::WaypointMovingActionServer(std::string name) :
     as_.start();
 }
 
-void WaypointMovingActionServer::goalCB()
-{
-  goal_ = *as_.acceptNewGoal();
-  number_of_waypoints = goal_.waypoint.size();
-  progress_ = 0;
-  start_ = true;
-}
+// void WaypointMovingActionServer::goalCB()
+// {
+//   goal_ = *as_.acceptNewGoal();
+//   number_of_waypoints = goal_.waypoint.size();
+//   progress_ = 0;
+//   start_ = true;
+// }
 
-void WaypointMovingActionServer::preemptCB()
-{
-  ROS_INFO("%s: Preempted", action_name_.c_str());
-  result_.result = progress_;
-  as_.setPreempted(result_, "I got Preempted!");
-}
+// void WaypointMovingActionServer::preemptCB()
+// {
+//   ROS_INFO("%s: Preempted", action_name_.c_str());
+//   result_.result = progress_;
+//   as_.setPreempted(result_, "I got Preempted!");
+// }
 
 void WaypointMovingActionServer::executeCB(const my_robot_controller::WaypointMovingGoalConstPtr &goal)
 {
   //printf("access");
+  if (as_.isNewGoalAvailable()) {
+  goal_= *as_.acceptNewGoal();
+  number_of_waypoints = goal_.waypoint.size();
+  progress_ = 0;
+  start_ = true;
+  }
+
   if (!as_.isActive() || as_.isPreemptRequested())
+    ROS_INFO("%s: Preempted", action_name_.c_str());
+    result_.result = progress_;
+    as_.setPreempted(result_, "I got Preempted!");
     return;
   if (progress_ < number_of_waypoints) {
 
@@ -139,8 +149,10 @@ void WaypointMovingActionServer::executeCB(const my_robot_controller::WaypointMo
     command_.linear.x = 0;
     command_.linear.y = 0;
     pub_.publish(command_);
+
     ROS_INFO("I'm getting to goal, %d/%d", progress_ + 1,
     number_of_waypoints);
+
     feedback_.progress = progress_;
     as_.publishFeedback(feedback_);
 
