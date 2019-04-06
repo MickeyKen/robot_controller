@@ -55,6 +55,8 @@ WaypointMovingActionServer::WaypointMovingActionServer(std::string name) :
   pub_ = nh_.advertise<geometry_msgs::Twist>(
     "/cmd_vel", 1);
     as_.start();
+  progress_ = 0;
+  start_ = true;
 }
 
 // void WaypointMovingActionServer::goalCB()
@@ -75,69 +77,71 @@ WaypointMovingActionServer::WaypointMovingActionServer(std::string name) :
 void WaypointMovingActionServer::executeCB(const my_robot_controller::WaypointMovingGoalConstPtr &goal)
 {
   //printf("access");
-  if (as_.isNewGoalAvailable()) {
-  goal_= *as_.acceptNewGoal();
-  number_of_waypoints = goal_.waypoint.size();
-  progress_ = 0;
-  start_ = true;
-  }
 
-  if (!as_.isActive() || as_.isPreemptRequested())
+
+
+  printf("%d \n", progress_);
+
+  if (!as_.isActive() || as_.isPreemptRequested()) {
     ROS_INFO("%s: Preempted", action_name_.c_str());
     result_.result = progress_;
     as_.setPreempted(result_, "I got Preempted!");
     return;
+  }
+
+
   if (progress_ < number_of_waypoints) {
 
-    geometry_msgs::Pose p = goal_.waypoint[progress_];
-    double target_x = p.position.x;
-    double target_y = p.position.y;
-
-    tf::Quaternion q(p.orientation.x, p.orientation.y, p.orientation.z, p.orientation.w);
-    tf::Matrix3x3 m(q);
-    double roll, pitch, yaw;
-    m.getRPY(roll, pitch, yaw);
-    double target_theta = yaw;
-
-    double current_x = 0.0;
-    double current_y = 0.0;
-
-    rate = 20;
-    x_speed = 0.4;
-    y_speed = 0.4;
-
-    ros::Rate r(rate);
-
-    base_frame = "/base_footprint";
-    child_frame = "/odom";
-
-    if (target_x < 0) {
-      command_.linear.x = - (x_speed);
-    } else {
-      command_.linear.x = x_speed;
-    }
-    if (target_y < 0) {
-      command_.linear.y = - (y_speed);
-    } else {
-      command_.linear.y = y_speed;
-    }
-
-    while (current_x < target_x && current_y < target_y && nh_.ok()) {
-      pub_.publish(command_);
-      r.sleep();
-      try {
-        listener.waitForTransform(base_frame, child_frame,
-          ros::Time(0), ros::Duration(1.0));
-        listener.lookupTransform(base_frame, child_frame,
-          ros::Time(0), transform);
-      } catch (tf::TransformException &ex) {
-        ROS_ERROR("%s",ex.what());
-        ros::Duration(1.0).sleep();
-        continue;
-      }
-      current_x += fabs(transform.getOrigin().x());
-      current_y += fabs(transform.getOrigin().y());
-    }
+    printf("ExcecuteCB in main loop\n");
+    // geometry_msgs::Pose p = goal_.waypoint[progress_];
+    // double target_x = p.position.x;
+    // double target_y = p.position.y;
+    //
+    // tf::Quaternion q(p.orientation.x, p.orientation.y, p.orientation.z, p.orientation.w);
+    // tf::Matrix3x3 m(q);
+    // double roll, pitch, yaw;
+    // m.getRPY(roll, pitch, yaw);
+    // double target_theta = yaw;
+    //
+    // double current_x = 0.0;
+    // double current_y = 0.0;
+    //
+    // rate = 20;
+    // x_speed = 0.4;
+    // y_speed = 0.4;
+    //
+    // ros::Rate r(rate);
+    //
+    // base_frame = "/base_footprint";
+    // child_frame = "/odom";
+    //
+    // if (target_x < 0) {
+    //   command_.linear.x = - (x_speed);
+    // } else {
+    //   command_.linear.x = x_speed;
+    // }
+    // if (target_y < 0) {
+    //   command_.linear.y = - (y_speed);
+    // } else {
+    //   command_.linear.y = y_speed;
+    // }
+    //
+    // while (current_x < target_x && current_y < target_y && nh_.ok()) {
+    //   pub_.publish(command_);
+    //   r.sleep();
+    //   try {
+    //     listener.waitForTransform(base_frame, child_frame,
+    //       ros::Time(0), ros::Duration(1.0));
+    //     listener.lookupTransform(base_frame, child_frame,
+    //       ros::Time(0), transform);
+    //   } catch (tf::TransformException &ex) {
+    //     ROS_ERROR("%s",ex.what());
+    //     ros::Duration(1.0).sleep();
+    //     continue;
+    //   }
+    //   current_x += fabs(transform.getOrigin().x());
+    //   current_y += fabs(transform.getOrigin().y());
+    // }
 
 
     command_.linear.x = 0;
@@ -158,6 +162,8 @@ void WaypointMovingActionServer::executeCB(const my_robot_controller::WaypointMo
     result_.result = progress_;
     as_.setSucceeded(result_);
   }
+
+
 }
 
 int main(int argc, char** argv)
