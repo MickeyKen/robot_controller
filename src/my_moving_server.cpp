@@ -16,7 +16,7 @@ public:
   ~WaypointMovingActionServer(void) { };
   // void goalCB();
   // void preemptCB();
-  void executeCB(const my_robot_controller::WaypointMovingGoalConstPtr &goal_);
+  void controlCB(const my_robot_controller::WaypointMovingGoalConstPtr &goal_);
 
 protected:
   ros::NodeHandle nh_;
@@ -33,7 +33,7 @@ protected:
   double y_speed;
   double ang_speed;
   int rate;
-  my_robot_controller::WaypointMovingGoal goal_;
+  // my_robot_controller::WaypointMovingGoal goal_;
   my_robot_controller::WaypointMovingResult result_;
   my_robot_controller::WaypointMovingFeedback feedback_;
   geometry_msgs::Twist command_;
@@ -43,7 +43,7 @@ protected:
 };
 
 WaypointMovingActionServer::WaypointMovingActionServer(std::string name) :
- as_(nh_, name, boost::bind(&WaypointMovingActionServer::executeCB, this, _1), false),
+ as_(nh_, name, boost::bind(&WaypointMovingActionServer::controlCB, this, _1), false),
  action_name_(name)
 {
   // as_.registerGoalCallback(boost::bind(
@@ -55,8 +55,7 @@ WaypointMovingActionServer::WaypointMovingActionServer(std::string name) :
   pub_ = nh_.advertise<geometry_msgs::Twist>(
     "/cmd_vel", 1);
     as_.start();
-  progress_ = 0;
-  start_ = true;
+
 }
 
 // void WaypointMovingActionServer::goalCB()
@@ -74,10 +73,14 @@ WaypointMovingActionServer::WaypointMovingActionServer(std::string name) :
 //   as_.setPreempted(result_, "I got Preempted!");
 // }
 
-void WaypointMovingActionServer::executeCB(const my_robot_controller::WaypointMovingGoalConstPtr &goal)
+void WaypointMovingActionServer::controlCB(const my_robot_controller::WaypointMovingGoalConstPtr &goal_)
 {
   //printf("access");
-
+    // goal_ = *as_.acceptNewGoal();
+    std::cout << goal_;
+    // number_of_waypoints = goal_.waypoint.size();
+    progress_ = 0;
+    start_ = true;
 
 
   printf("%d \n", progress_);
@@ -154,8 +157,6 @@ void WaypointMovingActionServer::executeCB(const my_robot_controller::WaypointMo
     feedback_.progress = progress_;
     as_.publishFeedback(feedback_);
 
-    start_ = true;
-    progress_++;
 
   } else {
     ROS_INFO("%s: Succeeded", action_name_.c_str());
